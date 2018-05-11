@@ -1,5 +1,7 @@
 [Unit]
 Description=docker compose of all usenet services
+Requires=data.mount
+After=data.mount
 
 [Service]
 Restart=on-failure

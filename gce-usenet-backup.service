@@ -1,5 +1,7 @@
 [Unit]
 Description=Backup Configs
+Requires=data.mount
+After=data.mount
 
 [Service]
 Type=oneshot
