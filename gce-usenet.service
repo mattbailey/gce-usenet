@@ -5,7 +5,7 @@ After=data.mount
 
 [Service]
 Restart=on-failure
-WorkingDirectory=/drive/gce-usenet
+WorkingDirectory=/data/gce-usenet
 
 ExecStartPre=-/bin/git pull
 ExecStartPre=-/opt/bin/docker-compose pull
