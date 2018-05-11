@@ -10,8 +10,10 @@ WorkingDirectory=/drive/gce-usenet
 ExecStartPre=-/bin/git pull
 ExecStartPre=-/opt/bin/docker-compose pull
 ExecStartPre=-/opt/bin/docker-compose build
+ExecStartPre=-/bin/umount .drive
 ExecStart=-/opt/bin/docker-compose up
 ExecStop=-/opt/bin/docker-compose down
+ExecStopPost=-/bin/umount .drive
 
 [Install]
 WantedBy=multi-user.target
