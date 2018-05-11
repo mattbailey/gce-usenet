@@ -1,0 +1,22 @@
+[Unit]
+Description=Backup Configs
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker run --rm \
+  -v /data/gce-usenet/.etc/rclone:/root/.config/rclone:ro \
+  -v /data/gce-usenet:/data:ro \
+  gce-usenet_rclone \
+  rclone -v sync \
+    --exclude "*log*" \
+    --exclude "*Log*" \
+    --exclude "certbot/**" \
+    --exclude "sickrage/cache/**" \
+    --exclude "sickrage/cache.db" \
+    --exclude "couchpotato/data/cache/**" \
+    --exclude "couchpotato/data/database/**" \
+    --exclude "nzbget/.tmp/**" \
+    /data/.etc drive:/Backups/media/etc
+
+[Install]
+WantedBy=multi-user.target

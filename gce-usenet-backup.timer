@@ -1,0 +1,9 @@
+[Unit]
+Description=Backup config to gdrive
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timer.target

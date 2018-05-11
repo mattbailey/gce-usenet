@@ -1,0 +1,103 @@
+version: "3"
+services:
+  certbot:
+    env_file: .env
+    image: certbot/certbot:latest
+    restart: "no"
+    volumes:
+      - "./.etc/certbot:/etc/letsencrypt"
+    ports:
+      - "80:80"
+    command: "certonly -n --standalone --agree-tos --email ${CERTBOT_EMAIL} -d ${CERTBOT_DOMAIN}"
+  mediaproxy:
+    build: ./mediaproxy
+    restart: always
+    expose:
+      - 80
+    networks:
+      - media
+  oauth:
+    env_file: .env
+    build: ./oauth
+    restart: always
+    ports:
+      - "443:443"
+    volumes:
+      - "./.etc/certbot:/etc/letsencrypt"
+    networks:
+      - media
+    command: >
+      oauth2_proxy
+      --upstream="http://mediaproxy"
+      --http-address="https://:443"
+      --email-domain="${OAUTH2_PROXY_EMAIL_DOMAIN}"
+      --tls-key="/etc/letsencrypt/live/${CERTBOT_DOMAIN}/privkey.pem"
+      --tls-cert="/etc/letsencrypt/live/${CERTBOT_DOMAIN}/fullchain.pem"
+  rclone:
+    env_file: .env
+    build: ./rclone
+    restart: always
+    security_opt:
+      - 'apparmor:unconfined'
+    cap_add:
+      - MKNOD
+      - SYS_ADMIN
+    devices:
+      - "/dev/fuse:/dev/fuse"
+    volumes:
+      - ".drive:/drive:shared"
+      - "./.etc/rclone:/root/.config/rclone"
+    command: "rclone mount drive:/ /drive --allow-non-empty --allow-other --no-modtime"
+  nzbget:
+    image: linuxserver/nzbget:testing
+    restart: always
+    volumes:
+      - "./.etc/nzbget/nzbget.conf:/config/nzbget.conf"
+      - "./.downloads:/downloads:shared"
+      - "./.drive:/drive:shared"
+    expose:
+      - 6789
+    environment:
+      PUID: 0
+      GID: 0
+      TZ: UTC
+    networks:
+      - media
+  sickrage:
+    image: xataz/sickrage:latest
+    restart: always
+    volumes:
+      - "./.etc/sickrage:/config"
+      - "./.downloads:/downloads:shared"
+      - "./.drive:/drive:shared"
+    expose:
+      - 8081
+    environment:
+      PUID: 0
+      GID: 0
+      TZ: UTC
+      WEBROOT: /tv
+    depends_on:
+      - rclone
+    networks:
+      - media
+  couchpotato:
+    image: linuxserver/couchpotato:latest
+    restart: always
+    volumes:
+      - "./.etc/couchpotato:/config"
+      - "./.downloads:/downloads:shared"
+      - "./.drive:/drive:shared"
+    expose:
+      - 5050
+    environment:
+      PUID: 0
+      GID: 0
+      TZ: UTC
+    depends_on:
+      - rclone
+    networks:
+      - media
+
+networks:
+  media:
