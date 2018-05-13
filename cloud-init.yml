@@ -1,0 +1,64 @@
+#cloud-config
+
+write_files:
+- path: /etc/systemd/system/gce-usenet-backup.timer
+  permissions: 0644
+  owner: root
+  content: |
+    [Unit]
+    Description=Backup config to gdrive
+
+    [Timer]
+    OnCalendar=daily
+    Persistent=true
+- path: /etc/systemd/system/gce-usenet-backup.service
+  permissions: 0644
+  owner: root
+  content: |
+    [Unit]
+    Description=Backup Configs
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/bin/docker run --rm \
+      -v /mnt/stateful_partition/gce-usenet/.etc/rclone:/root/.config/rclone:ro \
+      -v /mnt/stateful_partition/gce-usenet:/data:ro \
+      gce-usenet_rclone \
+      rclone -v sync \
+        --exclude "*log*" \
+        --exclude "*Log*" \
+        --exclude "certbot/**" \
+        --exclude "sickrage/cache/**" \
+        --exclude "sickrage/cache.db" \
+        --exclude "couchpotato/data/cache/**" \
+        --exclude "couchpotato/data/database/**" \
+        --exclude "nzbget/.tmp/**" \
+        /data/.etc drive:/Backups/media/etc
+- path: /etc/systemd/system/gce-usenet.service
+  permissions: 0644
+  owner: root
+  content: |
+    [Unit]
+    Description=docker compose of all usenet services
+
+    [Service]
+    Restart=on-failure
+    WorkingDirectory=/mnt/stateful_partition/gce-usenet
+
+    ExecStartPre=-/usr/bin/git pull
+    ExecStartPre=-/tmp/docker-compose pull
+    ExecStartPre=-/tmp/docker-compose build
+    ExecStartPre=-/bin/umount .drive
+    ExecStart=-/tmp/docker-compose up
+    ExecStop=-/tmp/docker-compose down
+    ExecStopPost=-/bin/umount .drive
+
+
+runcmd:
+- mount -o remount,rw,exec /tmp
+- curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-Linux-x86_64 -o /tmp/docker-compose
+- chmod +x /tmp/docker-compose
+- mount LABEL=nvme /mnt/stateful_partition/gce-usenet/.downloads
+- systemctl daemon-reload
+- systemctl start gce-usenet
+- systemctl start gce-usenet-backup.timer gce-usenet-backup.service
