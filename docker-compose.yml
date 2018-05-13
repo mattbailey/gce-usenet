@@ -63,6 +63,8 @@ services:
       TZ: UTC
     networks:
       - media
+    depends_on:
+      - rclone
   sickrage:
     image: xataz/sickrage:latest
     restart: always
