@@ -56,6 +56,7 @@ write_files:
 
 runcmd:
 - mount -o remount,rw,exec /tmp
+- mount -o remount,rw,exec,suid,dev,shared /mnt/stateful_partition
 - curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-Linux-x86_64 -o /tmp/docker-compose
 - chmod +x /tmp/docker-compose
 - mount LABEL=nvme /mnt/stateful_partition/gce-usenet/.downloads
