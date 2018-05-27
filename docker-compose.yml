@@ -47,7 +47,7 @@ services:
     volumes:
       - ".drive:/drive:shared"
       - "./.etc/rclone:/root/.config/rclone"
-    command: "rclone mount drive:/ /drive --allow-non-empty --allow-other --no-modtime"
+    command: "rclone mount --allow-other --max-read-ahead 200M --drive-chunk-size 128M --checkers 40 --dir-cache-time 30m --transfers=32 --allow-non-empty --allow-other --no-modtime drive:/ /drive"
   nzbget:
     image: linuxserver/nzbget:testing
     restart: always
