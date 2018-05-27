@@ -47,7 +47,7 @@ services:
     volumes:
       - ".drive:/drive:shared"
       - "./.etc/rclone:/root/.config/rclone"
-    command: "rclone mount --tpslimit 10 --bwlimit 25M --allow-non-empty --allow-other --no-modtime drive:/ /drive"
+    command: "rclone mount --tpslimit 2 --bwlimit 25M --allow-non-empty --allow-other --no-modtime drive:/ /drive"
   nzbget:
     image: linuxserver/nzbget:testing
     restart: always
