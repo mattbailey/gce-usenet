@@ -71,7 +71,7 @@ services:
     volumes:
       - "./.etc/sickrage:/config"
       - "./.downloads:/downloads"
-      - "./.drive:/drive:shared"
+      - "./.downloads:/drive"
       - "./.etc/rclone:/root/.config/rclone"
     expose:
       - 8081
