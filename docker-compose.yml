@@ -69,6 +69,7 @@ services:
     image: linuxserver/couchpotato:latest
     restart: always
     volumes:
+      - "./cp-post.sh:/usr/bin/cp-post.sh:ro"
       - "./.etc/couchpotato:/config"
       - "./.downloads:/downloads"
       - "./.downloads:/drive:shared"
