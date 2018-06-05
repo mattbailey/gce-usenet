@@ -1,14 +1,5 @@
 version: "3"
 services:
-  certbot:
-    env_file: .env
-    image: certbot/certbot:latest
-    restart: "no"
-    volumes:
-      - "./.etc/certbot:/etc/letsencrypt"
-    ports:
-      - "80:80"
-    command: "certonly -n --standalone --agree-tos --email ${CERTBOT_EMAIL} -d ${CERTBOT_DOMAIN}"
   mediaproxy:
     build: ./mediaproxy
     restart: always
@@ -21,7 +12,7 @@ services:
     build: ./oauth
     restart: always
     ports:
-      - "443:443"
+    - "80:80"
     volumes:
       - "./.etc/certbot:/etc/letsencrypt"
     networks:
@@ -29,22 +20,20 @@ services:
     command: >
       oauth2_proxy
       --upstream="http://mediaproxy"
-      --http-address="https://:443"
+      --http-address="http://:80"
       --email-domain="${OAUTH2_PROXY_EMAIL_DOMAIN}"
-      --tls-key="/etc/letsencrypt/live/${CERTBOT_DOMAIN}/privkey.pem"
-      --tls-cert="/etc/letsencrypt/live/${CERTBOT_DOMAIN}/fullchain.pem"
   nzbget:
     image: linuxserver/nzbget:testing
     restart: always
     volumes:
       - "./.etc/nzbget/nzbget.conf:/config/nzbget.conf"
-      - "./.downloads:/downloads"
+      - "./.cache/downloads:/downloads"
     expose:
       - 6789
     environment:
       PUID: 0
       GID: 0
-      TZ: UTC
+      TZ: PST8PDT
     networks:
       - media
   sickrage:
@@ -53,16 +42,18 @@ services:
     volumes:
       - "./sickrage-post.sh:/usr/bin/sickrage-post.sh:ro"
       - "./.etc/sickrage:/config"
-      - "./.downloads:/downloads"
-      - "./.downloads:/drive"
+      - "./.cache/downloads:/downloads"
+      - "./.drive:/drive/Video:shared"
       - "./.etc/rclone:/root/.config/rclone"
     expose:
       - 8081
     environment:
       PUID: 0
       GID: 0
-      TZ: UTC
+      TZ: PST8PDT
       WEBROOT: /tv
+    depends_on:
+      - rclone
     networks:
       - media
   couchpotato:
@@ -71,15 +62,17 @@ services:
     volumes:
       - "./cp-post.sh:/usr/bin/cp-post.sh:ro"
       - "./.etc/couchpotato:/config"
-      - "./.downloads:/downloads"
-      - "./.downloads:/drive:shared"
+      - "./.cache/downloads:/downloads"
+      - "./.drive:/drive:shared"
       - "./.etc/rclone:/root/.config/rclone"
     expose:
       - 5050
     environment:
       PUID: 0
       GID: 0
-      TZ: UTC
+      TZ: PST8PDT
+    depends_on:
+      - rclone
     networks:
       - media
   rclone:
@@ -110,7 +103,7 @@ services:
         --cache-chunk-size=64M 
         --cache-total-chunk-size=40G 
         --cache-chunk-clean-interval=1m 
-        --cache-info-age=48h 
+        --cache-info-age=12h 
         --cache-read-retries=10 
         --cache-workers=4 
         --cache-tmp-wait-time=15m 
@@ -121,22 +114,23 @@ services:
     env_file: .env
     image: plexinc/pms-docker:plexpass
     network_mode: host
+    depends_on:
+      - rclone
     environment:
       TZ: PST8PDT
       PLEX_UID: 0
       PLEX_GID: 0
     volumes:
       - "./.etc/plex:/config"
-      - "./.tmp/transcode:/transcode"
+      - "./.cache/transcode:/transcode"
       - "./.drive:/drive:shared"
-  tautulli:
+  plexpy:
     image: tautulli/tautulli:latest
     environment:
       PUID: 0
       GUID: 0
       ADVENCED_GIT_BRANCH: nightly
       TZ: PST8PDT
-      PLEX_CLAIM: claim-5ZKsfko7q6W31KhUXJPq
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "./.etc/plex/Library/Application Support/Plex Media Server/Logs:/logs:ro"
@@ -145,35 +139,6 @@ services:
       - 8181
     networks:
       - media
-  netdata:
-    image: titpetric/netdata:latest
-    cap_add:
-      - SYS_PTRACE
-      - SYS_ADMIN
-    volumes:
-      - "/proc:/host/proc:ro"
-      - "/sys:/host/sys:ro"
-    expose:
-      - 19999
-    networks:
-      - media
-  mylar:
-    image: linuxserver/mylar:latest
-    environment:
-      PGID: 0
-      PUID: 0
-      TZ: PST8PDT
-    expose:
-      - 8090
-    networks:
-      - media
-    volumes:
-      - "./.etc/mylar:/config"
-      - "./.downloads/Comics:/downloads"
-      - "./.drive:/drive:shared"
-
-
-
 
 networks:
   media:
