@@ -98,14 +98,13 @@ services:
         --allow-other 
         --no-modtime 
         --checkers=4
-        --cache-workers=2
         --cache-db-path=/cache 
         --cache-chunk-size=64M 
         --cache-total-chunk-size=40G 
         --cache-chunk-clean-interval=1m 
         --cache-info-age=12h 
         --cache-read-retries=10 
-        --cache-workers=4 
+        --cache-workers=8 
         --cache-tmp-wait-time=15m 
         --cache-db-wait-time=1s 
         --cache-tmp-upload-path=/upload 
@@ -120,6 +119,7 @@ services:
       TZ: PST8PDT
       PLEX_UID: 0
       PLEX_GID: 0
+      CHANGE_CONFIG_DIR_OWNERSHIP: "false"
     volumes:
       - "./.etc/plex:/config"
       - "./.cache/transcode:/transcode"

@@ -1,19 +1,19 @@
 [Unit]
 Description=docker compose of all usenet services
-Requires=data.mount
-After=data.mount
 
 [Service]
 Restart=on-failure
-WorkingDirectory=/data/gce-usenet
+WorkingDirectory=/opt/gce-usenet
 
-ExecStartPre=-/bin/git pull
-ExecStartPre=-/opt/bin/docker-compose pull
-ExecStartPre=-/opt/bin/docker-compose build
+ExecStartPre=-/bin/umount .cache
+ExecStartPre=/bin/mount /dev/md6 /opt/gce-usenet/.cache
+ExecStartPre=-/usr/bin/docker-compose pull
+ExecStartPre=-/usr/bin/docker-compose build
 ExecStartPre=-/bin/umount .drive
-ExecStart=-/opt/bin/docker-compose up
-ExecStop=-/opt/bin/docker-compose down
+ExecStart=/usr/bin/docker-compose up
+ExecStop=-/usr/bin/docker-compose down
 ExecStopPost=-/bin/umount .drive
+ExecStopPost=-/bin/umount .cache
 
 [Install]
 WantedBy=multi-user.target
