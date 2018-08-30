@@ -1,1 +1,7 @@
 .env
+.cache/
+.drive/
+.etc/mylar/
+.etc/plex/
+.etc/plexpy/
+.etc/ubooquity/

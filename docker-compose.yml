@@ -79,6 +79,8 @@ services:
     env_file: .env
     build: ./rclone
     restart: always
+    networks:
+      - media
     security_opt:
       - 'apparmor:unconfined'
     cap_add:
@@ -93,26 +95,43 @@ services:
       - "./.etc/rclone:/root/.config/rclone"
     command: >
       rclone mount 
-        --log-level INFO 
+        --log-level INFO
         --allow-non-empty 
         --allow-other 
         --no-modtime 
         --checkers=4
+        --cache-dir=/cache
         --cache-db-path=/cache 
+        --cache-db-wait-time=1s 
+        --cache-chunk-path=/cache
         --cache-chunk-size=64M 
-        --cache-total-chunk-size=40G 
+        --cache-chunk-total-size=40G 
         --cache-chunk-clean-interval=1m 
         --cache-info-age=12h 
         --cache-read-retries=10 
         --cache-workers=8 
         --cache-tmp-wait-time=15m 
-        --cache-db-wait-time=1s 
         --cache-tmp-upload-path=/upload 
+        --drive-use-created-date
+        --drive-use-trash=false
         drive-cache: /drive
   plex:
     env_file: .env
     image: plexinc/pms-docker:plexpass
-    network_mode: host
+    networks:
+      - media
+    ports:
+      - "8443:32400"
+    expose:
+      - 32400/tcp
+      - 3005/tcp
+      - 8324/tcp
+      - 32469/tcp
+      - 1900/udp
+      - 32410/udp
+      - 32412/udp
+      - 32413/udp
+      - 32414/udp
     depends_on:
       - rclone
     environment:
@@ -129,7 +148,7 @@ services:
     environment:
       PUID: 0
       GUID: 0
-      ADVENCED_GIT_BRANCH: nightly
+      ADVANCED_GIT_BRANCH: nightly
       TZ: PST8PDT
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
@@ -137,6 +156,22 @@ services:
       - "./.etc/plexpy:/config"
     expose:
       - 8181
+    networks:
+      - media
+  books:
+    image: linuxserver/ubooquity:latest
+    environment:
+      PUID: 0
+      GUID: 0
+      TZ: PST8PDT
+      MAXMEM: 1500
+    volumes:
+      - "./.etc/ubooquity:/config"
+      - "./.cache/downloads:/downloads"
+      - "./.drive:/drive:shared"
+    expose:
+      - 2202
+      - 2203
     networks:
       - media
 
