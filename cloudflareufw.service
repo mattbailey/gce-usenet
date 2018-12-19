@@ -1,0 +1,16 @@
+[Unit]
+Description=Allow CloudFlare through UFW
+Requires=ufw.service
+After=ufw.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -c 'echo cloudflare; \
+curl https://www.cloudflare.com/ips-v4 | xargs -I{} ufw allow from {} to any port 8443; \
+curl https://www.cloudflare.com/ips-v4 | xargs -I{} ufw allow from {} to any port 80; \
+curl https://www.cloudflare.com/ips-v6 | xargs -I{} ufw allow from {} to any port 8443; \
+curl https://www.cloudflare.com/ips-v6 | xargs -I{} ufw allow from {} to any port 80; \
+ufw reload'
+
+[Install]
+WantedBy=multi-user.target

@@ -28,6 +28,7 @@ services:
     volumes:
       - "./.etc/nzbget/nzbget.conf:/config/nzbget.conf"
       - "./.cache/downloads:/downloads"
+      - "./.drive:/drive:shared"
     expose:
       - 6789
     environment:

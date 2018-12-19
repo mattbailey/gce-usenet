@@ -6,7 +6,7 @@ Restart=on-failure
 WorkingDirectory=/opt/gce-usenet
 
 ExecStartPre=-/bin/umount .cache
-ExecStartPre=/bin/mount /dev/md6 /opt/gce-usenet/.cache
+ExecStartPre=/bin/mount /dev/md3 /opt/gce-usenet/.cache
 ExecStartPre=-/usr/bin/docker-compose pull
 ExecStartPre=-/usr/bin/docker-compose build
 ExecStartPre=-/bin/umount .drive
